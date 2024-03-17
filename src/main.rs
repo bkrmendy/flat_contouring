@@ -105,7 +105,7 @@ fn main() {
                         x: x as f32,
                         y: y as f32,
                     })
-                    .x;
+                    .value();
                 *pixel = if distance < 0.0 { black } else { white }
             }
         }
