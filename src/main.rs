@@ -84,6 +84,7 @@ fn main() {
 
     let i = Shape::rectangle(Point::new(60.0, 10.0), Point::new(70.0, 40.0))
         .union(Shape::circle(Point::new(65.0, 50.), 5.));
+
     let sdf = h.union(i);
 
     let black = Color { r: 0, g: 0, b: 0 };
