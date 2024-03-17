@@ -1,3 +1,4 @@
+use autodiff::*;
 use pixel_canvas::{Canvas, Color};
 
 #[derive(Debug, Clone, Copy)]
@@ -12,12 +13,12 @@ impl Point {
     }
 }
 
-type SignedDistanceFunction = dyn Fn(&Point) -> f32;
+type SignedDistanceFunction = dyn Fn(&Point) -> FT<f32>;
 
 struct Sdf(Box<SignedDistanceFunction>);
 
 impl Sdf {
-    pub fn distance(&self, p: &Point) -> f32 {
+    pub fn distance(&self, p: &Point) -> FT<f32> {
         self.0(p)
     }
 
@@ -38,7 +39,8 @@ struct Shape;
 impl Shape {
     pub fn circle(center: Point, radius: f32) -> Sdf {
         Sdf(Box::new(move |p| {
-            ((center.x - p.x).powf(2.0) + (center.y - p.y).powf(2.0)).sqrt() - radius
+            (FT::var(center.x - p.x).pow(2.0f32) + FT::var(center.y - p.y).pow(2.0f32)).sqrt()
+                - radius
         }))
     }
 
@@ -50,19 +52,19 @@ impl Shape {
     }
 
     pub fn left(x: f32) -> Sdf {
-        Sdf(Box::new(move |p| p.x - x))
+        Sdf(Box::new(move |p| FT::var(p.x - x)))
     }
 
     pub fn right(x: f32) -> Sdf {
-        Sdf(Box::new(move |p| x - p.x))
+        Sdf(Box::new(move |p| FT::var(x - p.x)))
     }
 
     pub fn lower(y: f32) -> Sdf {
-        Sdf(Box::new(move |p| p.y - y))
+        Sdf(Box::new(move |p| FT::var(p.y - y)))
     }
 
     pub fn upper(y: f32) -> Sdf {
-        Sdf(Box::new(move |p| y - p.y))
+        Sdf(Box::new(move |p| FT::var(y - p.y)))
     }
 }
 
@@ -98,10 +100,12 @@ fn main() {
         let width = image.width();
         for (y, row) in image.chunks_mut(width).enumerate() {
             for (x, pixel) in row.iter_mut().enumerate() {
-                let distance = sdf.distance(&Point {
-                    x: x as f32,
-                    y: y as f32,
-                });
+                let distance = sdf
+                    .distance(&Point {
+                        x: x as f32,
+                        y: y as f32,
+                    })
+                    .x;
                 *pixel = if distance < 0.0 { black } else { white }
             }
         }
